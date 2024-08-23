@@ -13,8 +13,7 @@ def Navbar():
             brand="Sport Monitoring",
             brand_href="/overview",
             color="rgb(32, 32, 32)",
-            dark=True,
-            sticky=True,
+            dark=True
         ), 
     ])
 

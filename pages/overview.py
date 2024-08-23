@@ -7,14 +7,18 @@ import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
 import os
+import re
+import glob
 from app import app
 from plotly.subplots import make_subplots
+from datetime import datetime
+from geopy.geocoders import Nominatim
+from geopy.point import Point
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+import requests
+import xml.etree.ElementTree as ET
 
 dash.register_page(__name__, path='/')
-
-# Global variables to store data
-data_cache = {}
-prev_selected_file = None
 
 # Function to parse GPX file
 def parse_gpx(file_path):
@@ -46,6 +50,42 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * asin(sqrt(a)) 
     r = 6371  # Radius of Earth in kilometers
     return c * r * 1000  # Return in meters
+
+def rename_gpx():
+    # Regular expression to match the <time> tag
+    time_regex = re.compile(r'<time>(.*?)</time>')
+    loc_regex = re.compile(r'<trkpt\s+lat="([+-]?\d+\.\d+)"\s+lon="([+-]?\d+\.\d+)">')
+
+    # Iterate over all files in the directory
+    for filename in os.listdir(gpx_folder):
+        if filename.endswith(".gpx"):
+            filepath = os.path.join(gpx_folder, filename)
+                
+            # Open and read the file
+            with open(filepath, 'r') as file:
+                content = file.read()
+
+                # Search for the first occurrence of the time tag
+                time_match = time_regex.search(content)
+                loc_match = loc_regex.search(content)
+
+                if time_match and loc_match:
+                    time_str = time_match.group(1)  # Extract the time string
+                    lat = loc_match.group(1)
+                    lon = loc_match.group(2)
+
+                    # Format the time string as YYYYMMDDHHMMSS
+                    formatted_time = time_str.replace('-', '').replace(':', '').replace('T', '').replace('Z', '')
+
+                    # Construct the new filename
+                    new_filename = f"{formatted_time}.gpx"
+                    new_filepath = os.path.join(gpx_folder, new_filename)
+
+                    # Rename the file
+                    os.rename(filepath, new_filepath)
+                    print(f"Renamed '{filename}' to '{new_filename}'")
+                else:
+                    print(f"No time tag found in '{filename}'")
 
 # Smooth speed data using rolling average
 def smooth_speed_data(speeds, window_size=5):
@@ -101,17 +141,6 @@ def calculate_metrics(latitudes, longitudes, times, elevations, pause_threshold_
     
     return speeds, distances, metrics
 
-# Get list of GPX files
-gpx_folder = os.path.dirname(os.path.abspath(__file__)).replace('pages', 'data')
-gpx_files = [f for f in os.listdir(gpx_folder) if f.endswith('.gpx')]
-
-# Create the map layout
-map_layout = go.Layout(
-    mapbox_style='open-street-map',
-    hovermode='closest',
-    showlegend=False,
-)
-
 def load_data(file_path):
     # Parse GPX file and calculate metrics
     latitudes, longitudes, times, elevations = parse_gpx(file_path)
@@ -131,8 +160,24 @@ def load_data(file_path):
         'metrics': metrics
     }
 
+# Create the map layout
+map_layout = go.Layout(
+    mapbox_style='open-street-map',
+    hovermode='closest',
+    showlegend=False,
+)
+
 # Create the figure and add the scatter mapbox trace
 map_figure = go.Figure(data=[go.Scattermapbox()], layout=map_layout)
+
+# Global variables to store data
+data_cache = {}
+prev_selected_file = None
+
+# Get list of GPX files
+gpx_folder = os.path.dirname(os.path.abspath(__file__)).replace('pages', 'data')
+rename_gpx()
+gpx_files = [f for f in os.listdir(gpx_folder) if f.endswith('.gpx')]
 
 # App layout
 layout = html.Div([
@@ -151,8 +196,16 @@ layout = html.Div([
                             html.Div([
                                 dcc.Dropdown(
                                     id='gpx-dropdown',
-                                    options=[{'label': f, 'value': os.path.join(gpx_folder, f)} for f in gpx_files],
+                                    options=[
+                                        {'label': f'Data Set: {file_name}', 'value': file_path}
+                                        for file_name, file_path in zip(
+                                            [os.path.basename(file_path) for file_path in glob.glob(os.path.join(gpx_folder, '*.gpx'))],
+                                            glob.glob(os.path.join(gpx_folder, '*.gpx'))
+                                        )
+                                    ],
                                     placeholder="Select a GPX file",
+                                    clearable=True,
+                                    searchable=True,
                                     persistence=True,
                                 ),
                             ], style={'width': '50%', 'margin-right': '10px'}),
@@ -161,6 +214,7 @@ layout = html.Div([
                                     id='activity-dropdown',
                                     options=['Running', 'Cycling', 'Walking'],
                                     placeholder="Select an activity",
+                                    persistence=True,
                                 ),
                             ], style={'width': '50%', 'margin-right': '10px'}),
                         ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
@@ -224,19 +278,24 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
     
     # Format metrics
     metrics = data['metrics']
-    times = data['times'] ## TODO add times into hover info
+    times = data['times']
+    formatted_times = [time.strftime('%Y-%m-%d %H:%M:%S %Z').replace(' Z', '') for time in times]  # Convert datetime to string
+    # Combine speed and time for hover info
+    hover_texts = [
+        f"Speed: {speed:.2f} km/h<br>Time: {time}"
+        for speed, time in zip(data['smoothed_speeds'], formatted_times)
+    ]
     total_time_seconds = metrics['total_time_seconds']
     hours, minutes, seconds = int(total_time_seconds // 3600), int((total_time_seconds % 3600) // 60), int(total_time_seconds % 60)
     total_time_formatted = f"{hours:02}:{minutes:02}:{seconds:02}"
     
-    # Create the map figure
     map_fig = go.Figure(go.Scattermapbox(
         lat=data['latitudes'][1:],
         lon=data['longitudes'][1:],
         mode='markers+lines',
         marker=dict(size=7, color=data['speeds_normalized'], colorscale='turbo'),
         line=dict(width=2, color='blue'),
-        text=[f'Speed: {speed:.2f} km/h' for speed in data['smoothed_speeds']],
+        text=hover_texts,
         hoverinfo='text'
     ))
     
@@ -374,5 +433,44 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
         )
 
     return metrics_output, map_fig, combined_fig
+
+# Define a callback to update the activity dropdown based on the average speed
+@app.callback(
+    Output('activity-dropdown', 'value'),
+    Input('gpx-dropdown', 'value')
+)
+def update_activity_dropdown(file_path):
+    if file_path:
+        if file_path not in data_cache:
+            data_cache[file_path] = load_data(file_path)
+
+        data = data_cache[file_path]
+        metrics = data['metrics']
+        average_speed = float(metrics["average_speed"])  # in km/h
+        
+        # Determine activity based on average speed
+        if average_speed > 17:
+            return 'Cycling'
+        elif 7 <= average_speed <= 17:
+            return 'Running'
+        else:
+            return 'Walking'
+    
+    return None  # Default value if no file is selected
+
+@app.callback(
+    Output('gpx-dropdown', 'options'),
+    [Input('gpx-dropdown', 'value')]
+)
+def update_options(selected_value):
+    updated_options = [
+        {'label': f'Data Set: {file_name}', 'value': file_path}
+        for file_name, file_path in zip(
+            [os.path.basename(file_path) for file_path in glob.glob(os.path.join(gpx_folder, '*.gpx'))],
+            glob.glob(os.path.join(gpx_folder, '*.gpx'))
+        )
+    ]
+    return updated_options
+
 if __name__ == '__main__':
     app.run_server(debug=True)
