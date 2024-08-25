@@ -188,13 +188,15 @@ layout = html.Div([
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
-                        html.Label('Select route and activity', style={'fontSize':30, 'textAlign':'center'}),
+                        dcc.Store(id='screen-size', storage_type='session'),
+                        html.Label('Select route and activity', className="desktop-visible", style={'fontSize': 30, 'textAlign': 'left'}),
+                        html.Label('Select route and activity', className="mobile-visible", style={'fontSize': '5vw', 'textAlign': 'left'}),
                         html.Div([
                             html.Div([
                                 dcc.Dropdown(
                                     id='gpx-dropdown',
                                     options=[
-                                        {'label': f'Data Set: {file_name}', 'value': file_path}
+                                        {'label': f'{file_name}', 'value': file_path}
                                         for file_name, file_path in zip(
                                             [os.path.basename(file_path) for file_path in glob.glob(os.path.join(gpx_folder, '*.gpx'))],
                                             glob.glob(os.path.join(gpx_folder, '*.gpx'))
@@ -205,7 +207,7 @@ layout = html.Div([
                                     searchable=True,
                                     persistence=True,
                                 ),
-                            ], style={'width': '50%', 'margin-right': '10px'}),
+                            ], className="desktop-visible", style={'width': '50%', 'margin-right': '10px'}),
                             html.Div([
                                 dcc.Dropdown(
                                     id='activity-dropdown',
@@ -213,24 +215,71 @@ layout = html.Div([
                                     placeholder="Select an activity",
                                     persistence=True,
                                 ),
-                            ], style={'width': '50%', 'margin-right': '10px'}),
+                            ], className="desktop-visible", style={'width': '50%', 'margin-right': '10px'}),
+                            html.Div([
+                                dcc.Dropdown(
+                                    id='gpx-dropdown-mobile',
+                                    options=[
+                                        {'label': f'{file_name}', 'value': file_path}
+                                        for file_name, file_path in zip(
+                                            [os.path.basename(file_path) for file_path in glob.glob(os.path.join(gpx_folder, '*.gpx'))],
+                                            glob.glob(os.path.join(gpx_folder, '*.gpx'))
+                                        )
+                                    ],
+                                    placeholder="Select a GPX file",
+                                    clearable=True,
+                                    searchable=True,
+                                    persistence=True,
+                                ),
+                                dcc.Dropdown(
+                                    id='activity-dropdown-mobile',
+                                    options=['Running', 'Cycling', 'Walking'],
+                                    placeholder="Select an activity",
+                                    persistence=True,
+                                    style={'marginTop': '10px'},
+                                ),
+                            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px'}),
                         ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
                     ]),
                 ], style={'background': 'linear-gradient(to top, rgb(255, 255, 255) 0%, rgb(64, 64, 64) 100%)'}),
             ]),
         ]),
+        # dbc.Row([
+        #     dbc.Col([
+        #         dbc.Card([
+        #             dbc.CardHeader("Trace details:"),
+        #             dbc.CardBody([
+        #                 html.Div([
+        #                     html.Div([
+        #                         dcc.Graph(id='combined-graph', style={'flex': '1', 'height': '200px'}),
+        #                     ], style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px', 'flex': '1'}),
+        #                     html.Div([
+        #                         dcc.Graph(id='gpx-map', figure=map_figure, className='map', style={'flex': '1', 'height': '400px', 'marginTop': '10px'}),
+        #                     ], style={'flex': '1'}),
+        #                 ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
+        #             ]),
+        #         ]),
+        #     ]),
+        # ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader("Trace details:"),
+                    dbc.CardHeader("Trace details:", className="desktop-visible", style={'fontSize': 30, 'textAlign': 'left'}),
+                    dbc.CardHeader("Trace details:", className="mobile-visible", style={'fontSize': '4vw', 'textAlign': 'left'}),
                     dbc.CardBody([
                         html.Div([
                             html.Div([
-                                dcc.Graph(id='combined-graph', style={'flex': '1', 'height': '200px'}),
+                                dcc.Graph(id='combined-graph', className="desktop-visible", style={'flex': '1', 'height': '200px'}),
                             ], style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px', 'flex': '1'}),
                             html.Div([
-                                dcc.Graph(id='gpx-map', figure=map_figure, className='map', style={'flex': '1', 'height': '400px'}),
+                                dcc.Graph(id='gpx-map', figure=map_figure, className="desktop-visible map", style={'flex': '1', 'height': '400px', 'marginTop': '10px'}),
                             ], style={'flex': '1'}),
+                        ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
+                        html.Div([
+                            html.Div([
+                                dcc.Graph(id='combined-graph-mobile', className="mobile-visible", style={'flex': '1', 'height': '80vw'}),
+                                dcc.Graph(id='gpx-map-mobile', figure=map_figure, className="mobile-visible map", style={'flex': '1', 'height': '100vw', 'marginTop': '10px'})
+                            ], className="mobile-visible", style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px', 'flex': '1'}),
                         ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
                     ]),
                 ]),
@@ -239,7 +288,8 @@ layout = html.Div([
         dbc.Row([
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader("Trace Information", style={'fontSize':30, 'textAlign':'left', 'color': 'black'}),
+                    dbc.CardHeader("Trace Information", className="desktop-visible", style={'fontSize': 30, 'textAlign': 'left', 'color': 'black'}),
+                    dbc.CardHeader("Trace Information", className="mobile-visible", style={'fontSize': '4vw', 'textAlign': 'left', 'color': 'black'}),
                     dbc.CardBody([
                         html.Div(id='metrics-output', style={'padding': '10px'})
                     ]),
@@ -249,10 +299,13 @@ layout = html.Div([
     ])
 ], style={'background': 'linear-gradient(to top, rgb(255, 255, 255) 0%, rgb(64, 64, 64) 100%)'})
 
+
 @app.callback(
     [Output('metrics-output', 'children'),
      Output('gpx-map', 'figure'),
-     Output('combined-graph', 'figure')],
+     Output('gpx-map-mobile', 'figure'),
+     Output('combined-graph', 'figure'),
+     Output('combined-graph-mobile', 'figure')],
     [Input('gpx-dropdown', 'value'),
      Input('combined-graph', 'hoverData'),
      Input('activity-dropdown', 'value')],
@@ -308,6 +361,9 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
         margin={"r":0, "t":0, "l":0, "b":0}
     )
 
+    # Mobile map figure
+    map_fig_mobile = go.Figure(map_fig)  # Same as desktop but may have different settings if needed
+
     # Create the combined figure with elevation and speed profiles
     elev_fig = go.Scatter(
         x=data['distances_kilometers'],
@@ -340,6 +396,10 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
         showlegend=False,
         margin={"r":0, "t":0, "l":0, "b":0}
     )
+
+    # Mobile combined figure
+    combined_fig_mobile = go.Figure(combined_fig)  # Same as desktop but may have different settings if needed
+
     ## TODO add to the calculation sex information and typical times for running, walking and biking based on Strava measurements
     if not activity or not weight or not height or not age or not sex:
         calories_burned = "Please select an activity and enter your personal information in setttings menu."
@@ -374,38 +434,80 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
             dbc.Card([
                 dbc.CardHeader("Total Distance:"),
                 dbc.CardBody(html.P(f'{metrics["total_distance"]:.2f} km', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
             dbc.Card([
                 dbc.CardHeader("Highest Speed:"),
                 dbc.CardBody(html.P(f'{metrics["highest_speed"]:.2f} km/h', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
             dbc.Card([
                 dbc.CardHeader("Lowest Speed:"),
                 dbc.CardBody(html.P(f'{metrics["lowest_speed"]:.2f} km/h', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
             dbc.Card([
                 dbc.CardHeader("Average Speed:"),
                 dbc.CardBody(html.P(f'{metrics["average_speed"]:.2f} km/h', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
         ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
         html.Div([
             dbc.Card([
                 dbc.CardHeader("Total Time:"),
                 dbc.CardBody(html.P(f'{total_time_formatted}', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
             dbc.Card([
                 dbc.CardHeader("Top Elevation:"),
                 dbc.CardBody(html.P(f'{metrics["top_elevation"]:.2f} m', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
             dbc.Card([
                 dbc.CardHeader("Lowest Elevation:"),
                 dbc.CardBody(html.P(f'{metrics["lowest_elevation"]:.2f} m', style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
             dbc.Card([
                 dbc.CardHeader("Calories Burned: "),
                 dbc.CardBody(html.P(calories_burned, style={'text-align': 'right', 'fontSize':20}))
-            ], style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
-        ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'})
+            ], className="desktop-visible", style={'width': '25%', 'margin-right': '10px', 'color': 'white', 'border-color': 'white', 'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+        ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
+        html.Div([
+            dbc.Card([
+                dbc.CardHeader("Total Distance:"),
+                dbc.CardBody(html.P(f'{metrics["total_distance"]:.2f} km', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Highest Speed:"),
+                dbc.CardBody(html.P(f'{metrics["highest_speed"]:.2f} km/h', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Lowest Speed:"),
+                dbc.CardBody(html.P(f'{metrics["lowest_speed"]:.2f} km/h', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Average Speed:"),
+                dbc.CardBody(html.P(f'{metrics["average_speed"]:.2f} km/h', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Total Time:"),
+                dbc.CardBody(html.P(f'{total_time_formatted}', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Top Elevation:"),
+                dbc.CardBody(html.P(f'{metrics["top_elevation"]:.2f} m', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Lowest Elevation:"),
+                dbc.CardBody(html.P(f'{metrics["lowest_elevation"]:.2f} m', style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+            dbc.Card([
+                dbc.CardHeader("Calories Burned:"),
+                dbc.CardBody(html.P(calories_burned, style={'text-align': 'right', 'fontSize': 20}))
+            ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px', 'color': 'white', 'border-color': 'white', 
+                    'background': 'radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(64, 64, 64) 90.2%)'}),
+        ], className="mobile-visible", style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px'}),
     ], style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px', 'flex': '1'})
 
     if hoverData_plot:
@@ -413,7 +515,7 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
         lat = data['latitudes'][point_index + 1]
         lon = data['longitudes'][point_index + 1]
 
-        # Update map figure
+        # Update map figures
         map_fig.update_traces(
             marker=dict(size=[12 if i == point_index else 7 for i in range(len(data['latitudes']) - 1)])
         )
@@ -423,13 +525,27 @@ def update_output(file_path, hoverData_plot, activity, weight, height, age, sex)
                 zoom=14
             )
         )
+        
+        map_fig_mobile.update_traces(
+            marker=dict(size=[12 if i == point_index else 7 for i in range(len(data['latitudes']) - 1)])
+        )
+        map_fig_mobile.update_layout(
+            mapbox=dict(
+                center=go.layout.mapbox.Center(lat=lat, lon=lon),
+                zoom=14
+            )
+        )
 
-        # Update combined figure
+        # Update combined figures
         combined_fig.update_traces(
             marker=dict(size=[10 if i == point_index else 5 for i in range(len(data['smoothed_speeds']))])
         )
+        
+        combined_fig_mobile.update_traces(
+            marker=dict(size=[10 if i == point_index else 5 for i in range(len(data['smoothed_speeds']))])
+        )
 
-    return metrics_output, map_fig, combined_fig
+    return metrics_output, map_fig, map_fig_mobile, combined_fig, combined_fig_mobile
 
 # Define a callback to update the activity dropdown based on the average speed
 @app.callback(
@@ -461,7 +577,7 @@ def update_activity_dropdown(file_path):
 )
 def update_options(selected_value):
     updated_options = [
-        {'label': f'Data Set: {file_name}', 'value': file_path}
+        {'label': f'{file_name}', 'value': file_path}
         for file_name, file_path in zip(
             [os.path.basename(file_path) for file_path in glob.glob(os.path.join(gpx_folder, '*.gpx'))],
             glob.glob(os.path.join(gpx_folder, '*.gpx'))

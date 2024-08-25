@@ -1,0 +1,21 @@
+/* assets/style.css */
+@media screen and (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+    .mobile-visible {
+        display: block !important;
+    }
+    .desktop-visible {
+        display: none !important;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .mobile-visible {
+        display: none !important;
+    }
+    .desktop-visible {
+        display: block !important;
+    }
+}
