@@ -12,9 +12,6 @@ import glob
 from app import app
 from plotly.subplots import make_subplots
 from datetime import datetime
-from geopy.geocoders import Nominatim
-from geopy.point import Point
-from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import requests
 import xml.etree.ElementTree as ET
 
