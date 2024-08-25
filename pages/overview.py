@@ -241,26 +241,9 @@ layout = html.Div([
                             ], className="mobile-visible", style={'width': '100%', 'margin-bottom': '10px'}),
                         ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
                     ]),
-                ], style={'background': 'linear-gradient(to top, rgb(255, 255, 255) 0%, rgb(64, 64, 64) 100%)'}),
+                ], style={'background': 'linear-gradient(to top, rgb(255, 255, 255) 0%, rgb(64, 64, 64) 100%)', 'border': '0px'}),
             ]),
         ]),
-        # dbc.Row([
-        #     dbc.Col([
-        #         dbc.Card([
-        #             dbc.CardHeader("Trace details:"),
-        #             dbc.CardBody([
-        #                 html.Div([
-        #                     html.Div([
-        #                         dcc.Graph(id='combined-graph', style={'flex': '1', 'height': '200px'}),
-        #                     ], style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px', 'flex': '1'}),
-        #                     html.Div([
-        #                         dcc.Graph(id='gpx-map', figure=map_figure, className='map', style={'flex': '1', 'height': '400px', 'marginTop': '10px'}),
-        #                     ], style={'flex': '1'}),
-        #                 ], style={'display': 'flex', 'flexDirection': 'row', 'gap': '10px', 'flex': '1'}),
-        #             ]),
-        #         ]),
-        #     ]),
-        # ]),
         dbc.Row([
             dbc.Col([
                 dbc.Card([
@@ -294,7 +277,7 @@ layout = html.Div([
                         html.Div(id='metrics-output', className="desktop-visible", style={'padding': '10px'}),
                         html.Div(id='metrics-output-mobile', className="mobile-visible", style={'padding': '10px'})
                     ]),
-                ], style={'background': 'linear-gradient(to top, rgb(64, 64, 64) 0%, rgb(255, 255, 255) 100%)'}),
+                ], style={'background': 'linear-gradient(to top, rgb(64, 64, 64) 0%, rgb(255, 255, 255) 100%)', 'border': '0px'}),
             ]),
         ]),
     ])
@@ -314,7 +297,6 @@ layout = html.Div([
 )
 def update_output(file_path, hoverData_plot, activity, weight, height, age, sex):
     global data_cache
-
 
     if not file_path:
         return [html.Div(), {}, {}]
